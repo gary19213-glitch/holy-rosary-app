@@ -32,22 +32,50 @@ function RosaryBeads({ currentBead }: { currentBead: number }) {
 // --- MAIN APP ---
 export default function Home() {
   const [screen, setScreen] = useState("home");
-  
-  // NEW TIMELINE LOGIC (Feature #9)
-  const [stage, setStage] = useState("intro"); // "intro", "decades", or "outro"
-  const [currentDecade, setCurrentDecade] = useState(0); // 0 to 4
-  const [currentBead, setCurrentBead] = useState(0); // 0 to 10
+  const [stage, setStage] = useState("intro"); 
+  const [currentDecade, setCurrentDecade] = useState(0); 
+  const [currentBead, setCurrentBead] = useState(0); 
   
   const [todayName, setTodayName] = useState("");
   const [todaysMystery, setTodaysMystery] = useState("");
 
+  // DATABASE STATES
+  const [totalRosaries, setTotalRosaries] = useState(0);
+  const [streak, setStreak] = useState(0);
+
+  // LOAD SAVED DATA WHEN APP OPENS
   useEffect(() => {
     const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     setTodayName(days[new Date().getDay()]);
     setTodaysMystery(getTodaysMystery());
+
+    // Load Stats from Phone Memory
+    const savedTotal = localStorage.getItem("totalRosaries");
+    if (savedTotal) setTotalRosaries(parseInt(savedTotal));
+
+    const savedStreak = localStorage.getItem("streak");
+    if (savedStreak) setStreak(parseInt(savedStreak));
   }, []);
 
-  // The Brain for moving forward through the whole Rosary
+  // SAVE STATS FUNCTION (Runs when you click "Finish Rosary")
+  const finishRosaryAndSave = () => {
+    // 1. Update Lifetime Total
+    const newTotal = totalRosaries + 1;
+    setTotalRosaries(newTotal);
+    localStorage.setItem("totalRosaries", newTotal.toString());
+
+    // 2. Update Streak (Simplified for now: just adds 1!)
+    const newStreak = streak + 1;
+    setStreak(newStreak);
+    localStorage.setItem("streak", newStreak.toString());
+
+    // 3. Reset and go Home
+    setScreen("home");
+    setStage("intro");
+    setCurrentDecade(0);
+    setCurrentBead(0);
+  };
+
   const nextPrayer = () => {
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     
@@ -59,16 +87,14 @@ export default function Home() {
       } else {
         if (currentDecade < 4) {
           setCurrentDecade(currentDecade + 1);
-          setCurrentBead(0); // Reset beads for next decade
+          setCurrentBead(0);
         } else {
-          setStage("outro"); // After 5th decade, go to outro
+          setStage("outro");
         }
       }
     } else if (stage === "outro") {
-      setScreen("home"); // Finish and go back home
-      setStage("intro");
-      setCurrentDecade(0);
-      setCurrentBead(0);
+      // THIS IS WHERE WE SAVE!
+      finishRosaryAndSave();
     }
   };
 
@@ -80,6 +106,7 @@ export default function Home() {
     }
   };
 
+  // --- ROSARY SCREEN ---
   if (screen === "rosary") {
     const currentDecadeData = mysteries.joyful.decades[currentDecade];
 
@@ -91,7 +118,6 @@ export default function Home() {
           <div style={{ width: "50px" }}></div>
         </header>
 
-        {/* STAGE 1: INTRO */}
         {stage === "intro" && (
           <div style={{ textAlign: "center", marginTop: "40px" }}>
             <h2 style={{ fontSize: "24px", color: "#d4af37" }}>Opening Prayers</h2>
@@ -101,16 +127,13 @@ export default function Home() {
           </div>
         )}
 
-        {/* STAGE 2: DECADES */}
         {stage === "decades" && (
           <>
             <div style={{ textAlign: "center", marginTop: "10px" }}>
               <h2 style={{ fontSize: "22px", margin: "0" }}>{currentDecadeData.title}</h2>
               <p style={{ color: "#a0a0a0", fontSize: "14px", fontStyle: "italic", marginTop: "5px" }}>Fruit of the Mystery: {currentDecadeData.fruit}</p>
             </div>
-            
             <RosaryBeads currentBead={currentBead} />
-            
             <div style={{ textAlign: "center", backgroundColor: "#16213e", padding: "15px", borderRadius: "12px", border: "1px solid #333", position: "relative" }}>
               <button onClick={() => playAudio(currentBead === 10 ? prayers.gloryBe : prayers.hailMary)} style={{ position: "absolute", top: "-20px", right: "20px", backgroundColor: "#d4af37", border: "none", borderRadius: "50%", width: "40px", height: "40px", fontSize: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}>🔊</button>
               <h3 style={{ color: "#d4af37", marginBottom: "10px", fontSize: "16px", marginTop: "10px" }}>{currentBead === 10 ? "Glory Be / O My Jesus" : `Hail Mary (${currentBead + 1}/10)`}</h3>
@@ -119,7 +142,6 @@ export default function Home() {
           </>
         )}
 
-        {/* STAGE 3: OUTRO */}
         {stage === "outro" && (
           <div style={{ textAlign: "center", marginTop: "40px" }}>
             <h2 style={{ fontSize: "24px", color: "#d4af37" }}>Closing Prayers</h2>
@@ -138,20 +160,42 @@ export default function Home() {
     );
   }
 
+  // --- HOME SCREEN ---
   return (
     <div style={{ padding: "20px", backgroundColor: "#1a1a2e", color: "white", minHeight: "100vh" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", marginBottom: "30px", alignItems: "center" }}>
+      <header style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px", alignItems: "center" }}>
         <h1 style={{ fontSize: "28px" }}>Holy Rosary</h1>
         <button style={{ fontSize: "24px", background: "none", border: "none" }}>⚙️</button>
       </header>
+      
       <main>
+        {/* NEW FEATURE: PRAYER STATS DASHBOARD */}
+        <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+          <div style={{ flex: 1, backgroundColor: "#16213e", padding: "15px", borderRadius: "12px", textAlign: "center", border: "1px solid #333" }}>
+            <p style={{ fontSize: "24px", margin: "0" }}>🔥 {streak}</p>
+            <p style={{ fontSize: "12px", color: "#a0a0a0", marginTop: "5px" }}>Day Streak</p>
+          </div>
+          <div style={{ flex: 1, backgroundColor: "#16213e", padding: "15px", borderRadius: "12px", textAlign: "center", border: "1px solid #333" }}>
+            <p style={{ fontSize: "24px", margin: "0", color: "#d4af37" }}>{totalRosaries}</p>
+            <p style={{ fontSize: "12px", color: "#a0a0a0", marginTop: "5px" }}>Total Rosaries</p>
+          </div>
+        </div>
+
         <div style={{ backgroundColor: "#16213e", padding: "24px", borderRadius: "16px", textAlign: "center", border: "1px solid #d4af37", marginBottom: "20px" }}>
           <h2 style={{ fontSize: "22px", marginBottom: "10px" }}>Quick Start Rosary</h2>
           <p style={{ color: "#a0a0a0", marginBottom: "5px" }}>Today is {todayName}</p>
           <p style={{ color: "#d4af37", fontWeight: "bold", fontSize: "18px", marginBottom: "20px" }}>{todaysMystery} Mysteries</p>
           <button onClick={() => setScreen("rosary")} style={{ backgroundColor: "#d4af37", color: "#1a1a2e", padding: "14px", width: "100%", borderRadius: "30px", fontSize: "18px", fontWeight: "bold", border: "none" }}>▶ Start Praying</button>
         </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+          {["Divine Mercy", "Stations of the Cross", "Prayer Library", "My Custom Lists"].map((title) => (
+            <div key={title} style={{ backgroundColor: "#16213e", padding: "20px 10px", borderRadius: "16px", textAlign: "center", minHeight: "90px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", fontWeight: "bold", border: "1px solid #2a2a4a" }}>
+              {title}
+            </div>
+          ))}
+        </div>
       </main>
     </div>
   );
-              }
+}
