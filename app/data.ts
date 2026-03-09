@@ -25,26 +25,31 @@ export const chapletPrayers = {
   holyGod: "Holy God, Holy Mighty One...", closing: "Eternal God, in whom mercy is endless..."
 };
 
-// FIXED IMAGES (Direct Source Links)
+// FIXED IMAGES: Using Unsplash (Permanent, High Quality, Open Source)
 export const stationsOfCross = [
-  { numeral: "I", title: "Jesus is condemned to death", image: "https://upload.wikimedia.org/wikipedia/commons/6/6f/1_Jesus_is_condemned_to_death.jpg", adoration: { leader: "We adore You, O Christ...", response: "Because, by Your holy cross..." }, reflection: "Consider how Jesus Christ..." },
-  { numeral: "II", title: "Jesus carries His cross", image: "https://upload.wikimedia.org/wikipedia/commons/c/cd/2_Jesus_carries_his_cross.jpg", adoration: { leader: "We adore You, O Christ...", response: "Because, by Your holy cross..." }, reflection: "Consider Jesus as He walked..." },
-  { numeral: "III", title: "Jesus falls the first time", image: "https://upload.wikimedia.org/wikipedia/commons/6/6c/3_Jesus_falls_the_first_time.jpg", adoration: { leader: "We adore You, O Christ...", response: "Because, by Your holy cross..." }, reflection: "Consider the first fall of Jesus..." },
-  { numeral: "IV", title: "Jesus meets His Mother", image: "https://upload.wikimedia.org/wikipedia/commons/8/87/4_Jesus_meets_his_mother.jpg", adoration: { leader: "We adore You, O Christ...", response: "Because, by Your holy cross..." }, reflection: "Consider how the Son met His Mother..." }
+  { numeral: "I", title: "Jesus is condemned to death", image: "https://images.unsplash.com/photo-1601058269784-9125f4d1c5a9?w=800&q=80", adoration: { leader: "We adore You, O Christ, and we praise You.", response: "Because, by Your holy cross, You have redeemed the world." }, reflection: "Consider how Jesus Christ, after being scourged and crowned with thorns, was unjustly condemned by Pilate to die on the cross." },
+  { numeral: "II", title: "Jesus carries His cross", image: "https://images.unsplash.com/photo-1544158498-5c4d347dcbc3?w=800&q=80", adoration: { leader: "We adore You, O Christ, and we praise You.", response: "Because, by Your holy cross, You have redeemed the world." }, reflection: "Consider Jesus as He walked this road with the cross on His shoulders, thinking of us, and offering to His Father the death He was about to suffer." },
+  { numeral: "III", title: "Jesus falls the first time", image: "https://images.unsplash.com/photo-1598421889819-216e9112de90?w=800&q=80", adoration: { leader: "We adore You, O Christ, and we praise You.", response: "Because, by Your holy cross, You have redeemed the world." }, reflection: "Consider the first fall of Jesus. Loss of blood from the scourging and crowning with thorns had so weakened Him that He could hardly walk." },
+  { numeral: "IV", title: "Jesus meets His Mother", image: "https://images.unsplash.com/photo-1574341258673-455bfa052ee6?w=800&q=80", adoration: { leader: "We adore You, O Christ, and we praise You.", response: "Because, by Your holy cross, You have redeemed the world." }, reflection: "Consider how the Son met His Mother on His way to Calvary. Jesus and Mary gazed at each other and their looks became as so many arrows to wound those hearts which loved each other so tenderly." }
 ];
 
 export const mysteries = {
   joyful: {
     name: "The Joyful Mysteries",
     decades: [
-      { title: "1st: The Annunciation", image: "https://upload.wikimedia.org/wikipedia/commons/0/07/Leonardo_da_Vinci_-_Annunciation_-_Google_Art_Project.jpg", fruit: "Humility", verse: "Mary said, 'Behold, I am the handmaid of the Lord.'", reflection: "Imagine the angel Gabriel appearing to Mary." },
-      { title: "2nd: The Visitation", image: "https://upload.wikimedia.org/wikipedia/commons/5/52/Domenico_Ghirlandaio_-_Visitation_-_WGA8628.jpg", fruit: "Love of Neighbor", verse: "Elizabeth cried out, 'Most blessed are you.'", reflection: "Mary hastens to help her cousin." },
-      { title: "3rd: The Nativity", image: "https://upload.wikimedia.org/wikipedia/commons/5/59/Gerard_van_Honthorst_-_Adoration_of_the_Shepherds_-_WGA11653.jpg", fruit: "Poverty in Spirit", verse: "She gave birth to her firstborn son...", reflection: "Jesus is born in a humble stable." },
-      { title: "4th: The Presentation", image: "https://upload.wikimedia.org/wikipedia/commons/4/4b/Presentation_at_the_Temple_%28Ambrogio_Lorenzetti%29.jpg", fruit: "Obedience", verse: "They took him up to Jerusalem...", reflection: "Mary and Joseph obey." },
-      { title: "5th: Finding Jesus", image: "https://upload.wikimedia.org/wikipedia/commons/4/4a/Jesus_among_the_Doctors-Veronese.jpg", fruit: "Joy in Finding Jesus", verse: "They found him in the temple...", reflection: "Mary and Joseph find Jesus." }
+      { title: "1st: The Annunciation", image: "https://images.unsplash.com/photo-1599933391942-d17a7eec6bf1?w=800&q=80", fruit: "Humility", verse: "Mary said, 'Behold, I am the handmaid of the Lord.'", reflection: "Imagine the angel Gabriel appearing to Mary." },
+      { title: "2nd: The Visitation", image: "https://images.unsplash.com/photo-1597010486884-3c6c06a4b272?w=800&q=80", fruit: "Love of Neighbor", verse: "Elizabeth cried out, 'Most blessed are you.'", reflection: "Mary hastens to help her cousin." },
+      { title: "3rd: The Nativity", image: "https://images.unsplash.com/photo-1543338575-b6d43e5db7ff?w=800&q=80", fruit: "Poverty in Spirit", verse: "She gave birth to her firstborn son...", reflection: "Jesus is born in a humble stable." },
+      { title: "4th: The Presentation", image: "https://images.unsplash.com/photo-1614050212871-331da90472f8?w=800&q=80", fruit: "Obedience", verse: "They took him up to Jerusalem...", reflection: "Mary and Joseph obey." },
+      { title: "5th: Finding Jesus", image: "https://images.unsplash.com/photo-1546484475-7f7bc5579d46?w=800&q=80", fruit: "Joy in Finding Jesus", verse: "They found him in the temple...", reflection: "Mary and Joseph find Jesus." }
     ]
   }
 };
 
 export function getTodaysMystery() { return "Joyful"; }
-export const prayerLibrary = [{ title: "Morning Offering", category: "Morning", text: "O Jesus, through the Immaculate Heart of Mary..." }];
+
+export const prayerLibrary = [
+  { title: "Morning Offering", category: "Morning", text: "O Jesus, through the Immaculate Heart of Mary..." },
+  { title: "St. Michael the Archangel", category: "Spiritual Warfare", text: "St. Michael the Archangel, defend us in battle..." },
+  { title: "The Angelus", category: "Marian", text: "V. The Angel of the Lord declared to Mary:\nR. And she conceived of the Holy Spirit.\n(Hail Mary...)" }
+];
