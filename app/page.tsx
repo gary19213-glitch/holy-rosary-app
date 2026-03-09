@@ -42,6 +42,9 @@ export default function Home() {
   const [speechSpeed, setSpeechSpeed] = useState(1.0);
   const [alternatingMode, setAlternatingMode] = useState(true);
 
+  // FEATURE 18: CUSTOM DECADE PRAYER
+  const [customPrayer, setCustomPrayer] = useState("");
+
   useEffect(() => {
     const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     setTodayName(days[new Date().getDay()]); setTodaysMystery(getTodaysMystery());
@@ -51,7 +54,27 @@ export default function Home() {
     if (localStorage.getItem("streak")) setStreak(parseInt(localStorage.getItem("streak")!));
     if (localStorage.getItem("speechSpeed")) setSpeechSpeed(parseFloat(localStorage.getItem("speechSpeed")!));
     if (localStorage.getItem("alternatingMode")) setAlternatingMode(localStorage.getItem("alternatingMode") === "true");
+    
+    // Load Custom Prayer
+    if (localStorage.getItem("customPrayer")) setCustomPrayer(localStorage.getItem("customPrayer")!);
+
+    // FEATURE 92: KEEP SCREEN AWAKE!
+    let wakeLock: any = null;
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await (navigator as any).wakeLock.request('screen');
+        }
+      } catch (err) { console.log("Wake Lock failed", err); }
+    };
+    requestWakeLock();
+    return () => { if (wakeLock !== null) wakeLock.release(); };
   }, []);
+
+  const saveCustomPrayer = (text: string) => {
+    setCustomPrayer(text);
+    localStorage.setItem("customPrayer", text);
+  };
 
   const finishAndSave = () => {
     const newTotal = totalRosaries + 1; setTotalRosaries(newTotal); localStorage.setItem("totalRosaries", newTotal.toString());
@@ -67,13 +90,11 @@ export default function Home() {
 
   const nextPrayer = () => {
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    
     if (screen === "stations") {
       if (currentStation < stationsOfCross.length - 1) setCurrentStation(currentStation + 1);
       else finishAndSave();
       return;
     }
-
     if (stage === "intro") { setStage("pendant"); setPendantBead(0); } 
     else if (stage === "pendant") {
       if (pendantBead < 4) setPendantBead(pendantBead + 1);
@@ -89,32 +110,46 @@ export default function Home() {
     else if (stage === "outro") finishAndSave();
   };
 
-  const playAudio = (prayerObj: any, followupText?: string) => {
+  const playAudio = (prayerObj: any, followupText?: string, thirdText?: string) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
+      
+      const playNext = (text: string, onFinish: () => void) => {
+        const u = new SpeechSynthesisUtterance(text); u.rate = speechSpeed;
+        u.onend = onFinish; window.speechSynthesis.speak(u);
+      };
+
       if (typeof prayerObj === "string") {
         const u = new SpeechSynthesisUtterance(prayerObj); u.rate = speechSpeed;
-        if (followupText) { const u2 = new SpeechSynthesisUtterance(followupText); u2.rate = speechSpeed; u.onend = () => window.speechSynthesis.speak(u2); if (isAutoPlay) u2.onend = () => nextPrayer(); } 
-        else { if (isAutoPlay) u.onend = () => nextPrayer(); }
+        u.onend = () => {
+          if (followupText) playNext(followupText, () => {
+            if (thirdText) playNext(thirdText, () => { if (isAutoPlay) nextPrayer(); });
+            else if (isAutoPlay) nextPrayer();
+          });
+          else if (isAutoPlay) nextPrayer();
+        };
         window.speechSynthesis.speak(u);
       } else if (alternatingMode && prayerObj.leader && prayerObj.response) {
         const l = new SpeechSynthesisUtterance(prayerObj.leader); l.rate = speechSpeed; l.pitch = 1.2;
         const r = new SpeechSynthesisUtterance(prayerObj.response); r.rate = speechSpeed; r.pitch = 0.7;
         l.onend = () => window.speechSynthesis.speak(r);
-        if (followupText) { const f = new SpeechSynthesisUtterance(followupText); f.rate = speechSpeed; r.onend = () => window.speechSynthesis.speak(f); if (isAutoPlay) f.onend = () => nextPrayer(); } 
-        else { if (isAutoPlay) r.onend = () => nextPrayer(); }
+        r.onend = () => {
+          if (followupText) playNext(followupText, () => {
+            if (thirdText) playNext(thirdText, () => { if (isAutoPlay) nextPrayer(); });
+            else if (isAutoPlay) nextPrayer();
+          });
+          else if (isAutoPlay) nextPrayer();
+        };
         window.speechSynthesis.speak(l);
       }
     }
   };
 
-  // THE AUTO-PLAY BUG FIX! Added currentStation to dependencies, and added stations logic.
   useEffect(() => {
     if (isAutoPlay && screen !== "home" && screen !== "settings" && screen !== "library") {
-      let prayerToRead; let followup;
+      let prayerToRead; let followup; let third;
       if (screen === "stations") {
-        prayerToRead = stationsOfCross[currentStation].adoration;
-        followup = stationsOfCross[currentStation].reflection;
+        prayerToRead = stationsOfCross[currentStation].adoration; followup = stationsOfCross[currentStation].reflection;
       }
       else if (screen === "rosary") {
         if (stage === "intro") prayerToRead = prayers.signOfCross + ". " + prayers.creed;
@@ -126,23 +161,23 @@ export default function Home() {
         else if (stage === "decades") {
             if (currentBead === 0) prayerToRead = prayers.ourFather;
             else if (currentBead >= 1 && currentBead <= 10) prayerToRead = prayers.hailMary;
-            else { prayerToRead = prayers.gloryBe; followup = prayers.fatimaPrayer; }
+            else { 
+              prayerToRead = prayers.gloryBe; 
+              followup = prayers.fatimaPrayer; 
+              if (customPrayer.length > 0) third = customPrayer; // INJECT CUSTOM PRAYER!
+            }
         }
         else if (stage === "outro") prayerToRead = prayers.hailHolyQueen;
       } 
-      else if (screen === "chaplet") {
-        if (stage === "intro") prayerToRead = chapletPrayers.opening;
-        else if (stage === "decades") prayerToRead = currentBead === 0 || currentBead === 11 ? chapletPrayers.eternalFather : chapletPrayers.sorrowfulPassion;
-        else if (stage === "outro") prayerToRead = chapletPrayers.closing;
-      }
-      if (prayerToRead) playAudio(prayerToRead, followup);
+      if (prayerToRead) playAudio(prayerToRead, followup, third);
     }
   }, [currentBead, stage, currentStation, isAutoPlay]); 
 
-  const renderPrayerText = (prayer: any, followup?: string) => (
+  const renderPrayerText = (prayer: any, followup?: string, third?: string) => (
     <>
       {typeof prayer === "string" ? prayer : <><span style={{ color: "#d4af37", fontWeight:"bold" }}>V.</span> {prayer.leader}<br/><br/><span style={{ color: "#d4af37", fontWeight:"bold" }}>R.</span> {prayer.response}</>}
       {followup && <><br/><br/><span style={{ color: "#d4af37", fontStyle: "italic", fontSize:"15px" }}>{followup}</span></>}
+      {third && <><br/><br/><span style={{ color: "#a0a0a0", fontStyle: "italic", fontSize:"15px", borderTop:"1px solid #444", paddingTop:"10px", display:"block" }}>Your Custom Prayer:<br/>{third}</span></>}
     </>
   );
 
@@ -150,7 +185,30 @@ export default function Home() {
     <div style={{ padding: "20px", backgroundColor: screen === "chaplet" ? "#3a0e1b" : themeColor, color: "white", minHeight: "100vh", transition: "background-color 1s ease" }}>
       
       {screen === "home" && (
-        <><header style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}><h1 style={{ fontSize: "28px" }}>Holy Rosary</h1><button onClick={() => setScreen("settings")} style={{ fontSize: "24px", background: "none", border: "none" }}>⚙️</button></header><div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}><div style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)", padding: "15px", borderRadius: "12px", textAlign: "center", border: "1px solid rgba(255,255,255,0.1)" }}><p style={{ fontSize: "24px", margin: "0" }}>🔥 {streak}</p><p style={{ fontSize: "12px", color: "#ccc" }}>Day Streak</p></div><div style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)", padding: "15px", borderRadius: "12px", textAlign: "center", border: "1px solid rgba(255,255,255,0.1)" }}><p style={{ fontSize: "24px", margin: "0", color: "#d4af37" }}>{totalRosaries}</p><p style={{ fontSize: "12px", color: "#ccc" }}>Total Prayers</p></div></div><div style={{ backgroundColor: "rgba(0,0,0,0.4)", padding: "24px", borderRadius: "16px", textAlign: "center", border: "1px solid #d4af37", marginBottom: "20px", boxShadow: "0 4px 20px rgba(0,0,0,0.5)" }}><h2 style={{ fontSize: "22px", marginBottom: "10px" }}>Quick Start Rosary</h2><div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", color: "#ccc", marginBottom: "15px", padding: "10px", backgroundColor: "rgba(0,0,0,0.2)", borderRadius: "8px" }}><span>{todayName}</span><span style={{ color: "#d4af37", fontWeight: "bold" }}>{liturgicalSeason}</span></div><p style={{ color: "#d4af37", fontWeight: "bold", fontSize: "20px", marginBottom: "20px" }}>{todaysMystery} Mysteries</p><button onClick={() => setScreen("rosary")} style={{ backgroundColor: "#d4af37", color: "#1a1a2e", padding: "14px", width: "100%", borderRadius: "30px", fontSize: "18px", fontWeight: "bold", border: "none" }}>▶ Start Praying</button></div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}><div onClick={() => setScreen("chaplet")} style={{ backgroundColor: "#3a0e1b", padding: "20px 10px", borderRadius: "16px", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", fontWeight: "bold", border: "1px solid #d4af37" }}>Divine Mercy</div><div onClick={() => setScreen("stations")} style={{ backgroundColor: "rgba(0,0,0,0.4)", padding: "20px 10px", borderRadius: "16px", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", fontWeight: "bold", border: "1px solid #d4af37", cursor:"pointer" }}>Stations of Cross</div><div onClick={() => setScreen("library")} style={{ backgroundColor: "rgba(0,0,0,0.4)", padding: "20px 10px", borderRadius: "16px", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", fontWeight: "bold", border: "1px solid #d4af37", cursor:"pointer" }}>Prayer Library</div><div style={{ backgroundColor: "rgba(0,0,0,0.4)", padding: "20px 10px", borderRadius: "16px", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", fontWeight: "bold", border: "1px solid rgba(255,255,255,0.1)" }}>My Custom Lists</div></div></>
+        <><header style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}><h1 style={{ fontSize: "28px" }}>Holy Rosary</h1><button onClick={() => setScreen("settings")} style={{ fontSize: "24px", background: "none", border: "none" }}>⚙️</button></header><div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}><div style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)", padding: "15px", borderRadius: "12px", textAlign: "center", border: "1px solid rgba(255,255,255,0.1)" }}><p style={{ fontSize: "24px", margin: "0" }}>🔥 {streak}</p><p style={{ fontSize: "12px", color: "#ccc" }}>Day Streak</p></div><div style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)", padding: "15px", borderRadius: "12px", textAlign: "center", border: "1px solid rgba(255,255,255,0.1)" }}><p style={{ fontSize: "24px", margin: "0", color: "#d4af37" }}>{totalRosaries}</p><p style={{ fontSize: "12px", color: "#ccc" }}>Total Prayers</p></div></div><div style={{ backgroundColor: "rgba(0,0,0,0.4)", padding: "24px", borderRadius: "16px", textAlign: "center", border: "1px solid #d4af37", marginBottom: "20px", boxShadow: "0 4px 20px rgba(0,0,0,0.5)" }}><h2 style={{ fontSize: "22px", marginBottom: "10px" }}>Quick Start Rosary</h2><div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", color: "#ccc", marginBottom: "15px", padding: "10px", backgroundColor: "rgba(0,0,0,0.2)", borderRadius: "8px" }}><span>{todayName}</span><span style={{ color: "#d4af37", fontWeight: "bold" }}>{liturgicalSeason}</span></div><p style={{ color: "#d4af37", fontWeight: "bold", fontSize: "20px", marginBottom: "20px" }}>{todaysMystery} Mysteries</p><button onClick={() => setScreen("rosary")} style={{ backgroundColor: "#d4af37", color: "#1a1a2e", padding: "14px", width: "100%", borderRadius: "30px", fontSize: "18px", fontWeight: "bold", border: "none" }}>▶ Start Praying</button></div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}><div onClick={() => setScreen("stations")} style={{ backgroundColor: "rgba(0,0,0,0.4)", padding: "20px 10px", borderRadius: "16px", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", fontWeight: "bold", border: "1px solid #d4af37", cursor:"pointer" }}>Stations of Cross</div><div onClick={() => setScreen("library")} style={{ backgroundColor: "rgba(0,0,0,0.4)", padding: "20px 10px", borderRadius: "16px", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", fontWeight: "bold", border: "1px solid #d4af37", cursor:"pointer" }}>Prayer Library</div></div></>
+      )}
+
+      {/* --- SETTINGS SCREEN (ADDED CUSTOM PRAYER BOX) --- */}
+      {screen === "settings" && (
+        <>
+          <header style={{ display: "flex", alignItems: "center", marginBottom: "30px" }}><button onClick={() => setScreen("home")} style={{ fontSize: "16px", background: "none", color: "#a0a0a0", border: "none", marginRight: "20px" }}>← Back</button><h1 style={{ fontSize: "24px" }}>Settings</h1></header>
+          
+          <div style={{ backgroundColor: "rgba(0,0,0,0.4)", padding: "20px", borderRadius: "16px", border: "1px solid #333", marginBottom: "20px" }}>
+            <h2 style={{ fontSize: "18px", color: "#d4af37", marginBottom: "15px" }}>Voice Settings</h2>
+            <label style={{ display: "block", marginBottom: "5px", color: "#a0a0a0" }}>Speech Speed: {speechSpeed}x</label><input type="range" min="0.5" max="2.0" step="0.25" value={speechSpeed} onChange={(e) => { setSpeechSpeed(parseFloat(e.target.value)); localStorage.setItem("speechSpeed", e.target.value); }} style={{ width: "100%", accentColor: "#d4af37", marginBottom:"20px" }} />
+          </div>
+
+          <div style={{ backgroundColor: "rgba(0,0,0,0.4)", padding: "20px", borderRadius: "16px", border: "1px solid #d4af37", marginBottom: "20px" }}>
+            <h2 style={{ fontSize: "18px", color: "#d4af37", marginBottom: "15px" }}>Custom Decade Prayer</h2>
+            <p style={{ fontSize: "13px", color: "#ccc", marginBottom: "10px" }}>Type a personal prayer here. It will be added to the end of every decade, right after the Fatima prayer.</p>
+            <textarea 
+              value={customPrayer}
+              onChange={(e) => saveCustomPrayer(e.target.value)}
+              placeholder="e.g., Jesus, protect my family today..."
+              style={{ width: "100%", height: "100px", padding: "10px", borderRadius: "8px", backgroundColor: "#1a1a2e", color: "white", border: "1px solid #444" }}
+            />
+          </div>
+        </>
       )}
 
       {/* --- STATIONS OF THE CROSS --- */}
@@ -158,34 +216,15 @@ export default function Home() {
         const station = stationsOfCross[currentStation];
         return (
           <div style={{ paddingBottom: "100px" }}>
-            <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-              <button onClick={quitToHome} style={{ background: "none", color: "#ccc", border: "none", fontSize: "16px" }}>← Quit</button>
-              <div style={{ fontSize: "14px", color: "#d4af37", fontWeight: "bold" }}>Via Dolorosa</div>
-              <button onClick={() => setIsAutoPlay(!isAutoPlay)} style={{ background: isAutoPlay ? "#d4af37" : "#333", color: isAutoPlay ? "#1a1a2e" : "white", border: "none", padding: "5px 10px", borderRadius: "20px" }}>{isAutoPlay ? "Auto ON" : "Auto OFF"}</button>
-            </header>
-
-            <div style={{ textAlign: "center", marginBottom: "20px", marginTop: "10px" }}>
-              <h1 style={{ fontSize: "50px", color: "#d4af37", margin: "0", opacity: 0.8 }}>{station.numeral}</h1>
-              <h2 style={{ fontSize: "20px", color: "#fff", marginTop: "5px", marginBottom: "20px" }}>{station.title}</h2>
-              
-              {/* FEATURE 47: CLASSICAL PAINTINGS IN STATIONS! */}
-              <img src={station.image} alt={station.title} style={{ width: "100%", height: "250px", objectFit: "cover", borderRadius: "12px", border: "2px solid #d4af37", boxShadow: "0 4px 15px rgba(0,0,0,0.5)" }} />
-            </div>
-
-            <div style={{ textAlign: "left", backgroundColor: "rgba(0,0,0,0.4)", padding: "20px", borderRadius: "12px", border: "1px solid #d4af37", position: "relative" }}>
-              <button onClick={() => playAudio(station.adoration, station.reflection)} style={{ position: "absolute", top: "-20px", right: "20px", backgroundColor: "#d4af37", border: "none", borderRadius: "50%", width: "40px", height: "40px", fontSize: "20px" }}>🔊</button>
-              <h3 style={{ color: "#d4af37", marginBottom: "15px", fontSize:"18px" }}>Adoration</h3>
-              <p style={{ fontSize: "16px", lineHeight: "1.5", color: "#e0e0e0", marginBottom: "20px" }}>{renderPrayerText(station.adoration)}</p>
-              <div style={{ height: "1px", backgroundColor: "rgba(255,255,255,0.1)", marginBottom: "15px" }}></div>
-              <h3 style={{ color: "#d4af37", marginBottom: "10px", fontSize:"18px" }}>Reflection</h3>
-              <p style={{ fontSize: "16px", lineHeight: "1.6", color: "#ccc", fontStyle: "italic" }}>"{station.reflection}"</p>
-            </div>
-            <div style={{ position: "fixed", bottom: "30px", left: "20px", right: "20px" }}><button onClick={nextPrayer} style={{ backgroundColor: "#d4af37", color: "#1a1a2e", padding: "16px", width: "100%", borderRadius: "30px", fontSize: "18px", fontWeight: "bold", border: "none", boxShadow: "0 4px 10px rgba(0,0,0,0.5)" }}>{currentStation === stationsOfCross.length - 1 ? "Finish Stations ✓" : "Next Station ➔"}</button></div>
+            <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}><button onClick={quitToHome} style={{ background: "none", color: "#ccc", border: "none", fontSize: "16px" }}>← Quit</button><div style={{ fontSize: "14px", color: "#d4af37", fontWeight: "bold" }}>Via Dolorosa</div><button onClick={() => setIsAutoPlay(!isAutoPlay)} style={{ background: isAutoPlay ? "#d4af37" : "#333", color: isAutoPlay ? "#1a1a2e" : "white", border: "none", padding: "5px 10px", borderRadius: "20px" }}>{isAutoPlay ? "Auto ON" : "Auto OFF"}</button></header>
+            <div style={{ textAlign: "center", marginBottom: "20px", marginTop: "10px" }}><h1 style={{ fontSize: "50px", color: "#d4af37", margin: "0" }}>{station.numeral}</h1><h2 style={{ fontSize: "20px", color: "#fff", marginTop: "5px", marginBottom: "20px" }}>{station.title}</h2><img src={station.image} alt={station.title} style={{ width: "100%", height: "250px", objectFit: "cover", borderRadius: "12px", border: "2px solid #d4af37" }} /></div>
+            <div style={{ textAlign: "left", backgroundColor: "rgba(0,0,0,0.4)", padding: "20px", borderRadius: "12px", border: "1px solid #d4af37", position: "relative" }}><button onClick={() => playAudio(station.adoration, station.reflection)} style={{ position: "absolute", top: "-20px", right: "20px", backgroundColor: "#d4af37", border: "none", borderRadius: "50%", width: "40px", height: "40px", fontSize: "20px" }}>🔊</button><h3 style={{ color: "#d4af37", marginBottom: "15px", fontSize:"18px" }}>Adoration</h3><p style={{ fontSize: "16px", lineHeight: "1.5", color: "#e0e0e0", marginBottom: "20px" }}>{renderPrayerText(station.adoration)}</p><h3 style={{ color: "#d4af37", marginBottom: "10px", fontSize:"18px" }}>Reflection</h3><p style={{ fontSize: "16px", lineHeight: "1.6", color: "#ccc", fontStyle: "italic" }}>"{station.reflection}"</p></div>
+            <div style={{ position: "fixed", bottom: "30px", left: "20px", right: "20px" }}><button onClick={nextPrayer} style={{ backgroundColor: "#d4af37", color: "#1a1a2e", padding: "16px", width: "100%", borderRadius: "30px", fontSize: "18px", fontWeight: "bold", border: "none" }}>{currentStation === stationsOfCross.length - 1 ? "Finish Stations ✓" : "Next Station ➔"}</button></div>
           </div>
         );
       })()}
 
-      {/* --- ROSARY SCREEN WITH PICTURES --- */}
+      {/* --- ROSARY SCREEN --- */}
       {screen === "rosary" && (
         <div style={{ paddingBottom: "100px" }}>
           <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><button onClick={quitToHome} style={{ background: "none", color: "#ccc", border: "none", fontSize: "16px" }}>← Quit</button><div style={{ fontSize: "14px", color: "#d4af37", fontWeight: "bold" }}>{mysteries.joyful.name}</div><button onClick={() => setIsAutoPlay(!isAutoPlay)} style={{ background: isAutoPlay ? "#d4af37" : "#333", color: isAutoPlay ? "#1a1a2e" : "white", border: "none", padding: "5px 10px", borderRadius: "20px" }}>{isAutoPlay ? "Auto ON" : "Auto OFF"}</button></header>
@@ -197,20 +236,14 @@ export default function Home() {
             <>
               <div style={{ textAlign: "center", marginTop: "10px", padding:"10px", backgroundColor:"rgba(0,0,0,0.3)", borderRadius:"12px" }}>
                 <h2 style={{ fontSize: "20px", margin: "0", color:"#fff", marginBottom: "10px" }}>{currentMystery.title}</h2>
-                
-                {/* FEATURE 15: CLASSICAL PAINTINGS IN ROSARY! */}
                 <img src={currentMystery.image} alt={currentMystery.title} style={{ width: "100%", height: "180px", objectFit: "cover", borderRadius: "8px", border: "1px solid #d4af37", marginBottom: "10px" }} />
-                
-                {currentBead === 0 && ( <div style={{ marginTop: "5px", paddingTop: "10px", borderTop: "1px solid #333", fontSize: "14px", color: "#ccc", textAlign: "left" }}><p style={{ marginBottom: "10px" }}><strong>Scripture:</strong> {currentMystery.verse}</p><p><strong>Reflection:</strong> {currentMystery.reflection}</p></div> )}
               </div>
               <RosaryBeads currentBead={currentBead} />
-              <div style={{ textAlign: "left", backgroundColor: "rgba(0,0,0,0.4)", padding: "20px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.1)", position: "relative" }}><button onClick={() => playAudio(currentBead === 0 ? prayers.ourFather : currentBead === 11 ? prayers.gloryBe : prayers.hailMary, currentBead === 11 ? prayers.fatimaPrayer : undefined)} style={{ position: "absolute", top: "-20px", right: "20px", backgroundColor: "#d4af37", border: "none", borderRadius: "50%", width: "40px", height: "40px", fontSize: "20px" }}>🔊</button><h3 style={{ color: "#d4af37", marginBottom: "15px", textAlign: "center", fontSize:"22px" }}>{currentBead === 0 ? "Our Father" : currentBead === 11 ? "Glory Be" : `Hail Mary (${currentBead}/10)`}</h3></div>
+              <div style={{ textAlign: "left", backgroundColor: "rgba(0,0,0,0.4)", padding: "20px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.1)", position: "relative" }}>
+                <button onClick={() => playAudio(currentBead === 0 ? prayers.ourFather : currentBead === 11 ? prayers.gloryBe : prayers.hailMary, currentBead === 11 ? prayers.fatimaPrayer : undefined, currentBead === 11 && customPrayer.length > 0 ? customPrayer : undefined)} style={{ position: "absolute", top: "-20px", right: "20px", backgroundColor: "#d4af37", border: "none", borderRadius: "50%", width: "40px", height: "40px", fontSize: "20px" }}>🔊</button>
+                <h3 style={{ color: "#d4af37", marginBottom: "15px", textAlign: "center", fontSize:"22px" }}>{currentBead === 0 ? "Our Father" : currentBead === 11 ? "Glory Be" : `Hail Mary (${currentBead}/10)`}</h3>
+                <p style={{ fontSize: "18px", lineHeight: "1.5", color: "#e0e0e0" }}>{renderPrayerText(currentBead === 0 ? prayers.ourFather : currentBead === 11 ? prayers.gloryBe : prayers.hailMary, currentBead === 11 ? prayers.fatimaPrayer : undefined, currentBead === 11 && customPrayer.length > 0 ? customPrayer : undefined)}</p>
+              </div>
             </>
           );})()}
-          {stage === "outro" && ( <div style={{ textAlign: "center", marginTop: "40px" }}><h2 style={{ fontSize: "24px", color: "#d4af37" }}>Closing Prayers</h2><p style={{ marginTop: "20px", fontSize: "18px" }}>{prayers.hailHolyQueen}</p></div> )}
-          <div style={{ position: "fixed", bottom: "30px", left: "20px", right: "20px" }}><button onClick={nextPrayer} style={{ backgroundColor: "#d4af37", color: "#1a1a2e", padding: "16px", width: "100%", borderRadius: "30px", fontSize: "18px", fontWeight: "bold", border: "none" }}>{stage === "outro" ? "Finish ✓" : "Next Prayer ➔"}</button></div>
-        </div>
-      )}
-    </div>
-  );
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            }
+          {stage === "outro" && ( <div style={{ textAlign: "center", marginTop: "40px" }}><h2 style={{ fontSize: "24px", color: "#d4af37" }}>Closing Prayer
