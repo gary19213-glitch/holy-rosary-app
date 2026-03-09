@@ -8,6 +8,31 @@ export function getLiturgicalInfo() {
   return { season, color };
 }
 
+// FEATURE 69 & 70: SAINT OF THE DAY ENGINE
+export function getTodaySaint() {
+  const today = new Date();
+  const dateString = `${today.getMonth() + 1}-${today.getDate()}`; // Formats like "3-19" for March 19
+
+  const saintsCalendar: any = {
+    "1-1": { name: "Mary, Mother of God", feastType: "Solemnity", bio: "The highest title of the Blessed Virgin Mary." },
+    "1-28": { name: "St. Thomas Aquinas", feastType: "Memorial", bio: "Dominican friar, philosopher, and Doctor of the Church." },
+    "2-14": { name: "St. Valentine", feastType: "Memorial", bio: "A 3rd-century Roman saint and martyr." },
+    "3-17": { name: "St. Patrick", feastType: "Feast", bio: "The Apostle of Ireland who used the shamrock to teach the Trinity." },
+    "3-19": { name: "St. Joseph, Husband of Mary", feastType: "Solemnity", bio: "Foster father of Jesus and patron of the Universal Church." },
+    "4-29": { name: "St. Catherine of Siena", feastType: "Memorial", bio: "Dominican tertiary, mystic, and Doctor of the Church." },
+    "5-1": { name: "St. Joseph the Worker", feastType: "Memorial", bio: "Honoring the dignity of human labor." },
+    "6-13": { name: "St. Anthony of Padua", feastType: "Memorial", bio: "Franciscan friar known for his powerful preaching and lost items." },
+    "8-15": { name: "The Assumption of Mary", feastType: "Solemnity", bio: "Mary is taken body and soul into heavenly glory." },
+    "10-4": { name: "St. Francis of Assisi", feastType: "Memorial", bio: "Founder of the Franciscans, lover of poverty and creation." },
+    "11-1": { name: "All Saints", feastType: "Solemnity", bio: "Honoring all the holy men and women in heaven." },
+    "12-8": { name: "The Immaculate Conception", feastType: "Solemnity", bio: "Mary conceived without original sin." },
+    "12-12": { name: "Our Lady of Guadalupe", feastType: "Feast", bio: "Patroness of the Americas." }
+  };
+
+  // If today isn't in our hardcoded list, return a generic daily message
+  return saintsCalendar[dateString] || { name: "No Major Feast Today", feastType: "Ferial Day", bio: "A day of ordinary liturgical observance." };
+}
+
 export const prayers = {
   signOfCross: "In the name of the Father, and of the Son, and of the Holy Spirit. Amen.",
   creed: "I believe in God, the Father Almighty...",
@@ -25,12 +50,11 @@ export const chapletPrayers = {
   holyGod: "Holy God, Holy Mighty One...", closing: "Eternal God, in whom mercy is endless..."
 };
 
-// FIXED IMAGES: Using Unsplash (Permanent, High Quality, Open Source)
 export const stationsOfCross = [
   { numeral: "I", title: "Jesus is condemned to death", image: "https://images.unsplash.com/photo-1601058269784-9125f4d1c5a9?w=800&q=80", adoration: { leader: "We adore You, O Christ, and we praise You.", response: "Because, by Your holy cross, You have redeemed the world." }, reflection: "Consider how Jesus Christ, after being scourged and crowned with thorns, was unjustly condemned by Pilate to die on the cross." },
   { numeral: "II", title: "Jesus carries His cross", image: "https://images.unsplash.com/photo-1544158498-5c4d347dcbc3?w=800&q=80", adoration: { leader: "We adore You, O Christ, and we praise You.", response: "Because, by Your holy cross, You have redeemed the world." }, reflection: "Consider Jesus as He walked this road with the cross on His shoulders, thinking of us, and offering to His Father the death He was about to suffer." },
-  { numeral: "III", title: "Jesus falls the first time", image: "https://images.unsplash.com/photo-1598421889819-216e9112de90?w=800&q=80", adoration: { leader: "We adore You, O Christ, and we praise You.", response: "Because, by Your holy cross, You have redeemed the world." }, reflection: "Consider the first fall of Jesus. Loss of blood from the scourging and crowning with thorns had so weakened Him that He could hardly walk." },
-  { numeral: "IV", title: "Jesus meets His Mother", image: "https://images.unsplash.com/photo-1574341258673-455bfa052ee6?w=800&q=80", adoration: { leader: "We adore You, O Christ, and we praise You.", response: "Because, by Your holy cross, You have redeemed the world." }, reflection: "Consider how the Son met His Mother on His way to Calvary. Jesus and Mary gazed at each other and their looks became as so many arrows to wound those hearts which loved each other so tenderly." }
+  { numeral: "III", title: "Jesus falls the first time", image: "https://images.unsplash.com/photo-1598421889819-216e9112de90?w=800&q=80", adoration: { leader: "We adore You, O Christ, and we praise You.", response: "Because, by Your holy cross, You have redeemed the world." }, reflection: "Consider the first fall of Jesus." },
+  { numeral: "IV", title: "Jesus meets His Mother", image: "https://images.unsplash.com/photo-1574341258673-455bfa052ee6?w=800&q=80", adoration: { leader: "We adore You, O Christ, and we praise You.", response: "Because, by Your holy cross, You have redeemed the world." }, reflection: "Consider how the Son met His Mother on His way to Calvary." }
 ];
 
 export const mysteries = {
