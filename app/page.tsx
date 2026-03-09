@@ -1,33 +1,75 @@
 "use client";
 import { useState } from "react";
-// Import our new Lego piece!
-import RosaryBeads from "./components/RosaryBeads";
 
+// --- OUR LEGO PIECE: THE VISUAL BEADS ---
+// We put it right here in the same file so it can't get lost!
+function RosaryBeads({ currentBead }: { currentBead: number }) {
+  const beads = Array.from({ length: 10 });
+  const radius = 110; 
+  const center = 150; 
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', margin: '30px 0' }}>
+      <svg width="300" height="360" viewBox="0 0 300 360">
+        <circle cx={center} cy={center} r={radius} stroke="#444" strokeWidth="2" fill="none" />
+        <path d="M 150 260 L 150 320" stroke="#444" strokeWidth="2" />
+
+        {beads.map((_, index) => {
+          const angle = (index / 10) * (Math.PI * 2) - (Math.PI / 2);
+          const x = center + radius * Math.cos(angle);
+          const y = center + radius * Math.sin(angle);
+          const isActive = currentBead === index;
+
+          return (
+            <circle
+              key={index} cx={x} cy={y}
+              r={isActive ? 14 : 10} 
+              fill={isActive ? "#d4af37" : "#1a1a2e"} 
+              stroke="#d4af37" strokeWidth="2"
+              style={{
+                filter: isActive ? "drop-shadow(0px 0px 10px #d4af37)" : "none",
+                transition: "all 0.4s ease" 
+              }}
+            />
+          );
+        })}
+
+        <circle 
+          cx="150" cy="280" 
+          r={currentBead === 10 ? 16 : 12} 
+          fill={currentBead === 10 ? "#d4af37" : "#1a1a2e"} 
+          stroke="#d4af37" strokeWidth="2" 
+          style={{ transition: "all 0.4s ease" }}
+        />
+        <text x="150" y="355" fontSize="50" textAnchor="middle" fill="#d4af37">✝</text>
+      </svg>
+    </div>
+  );
+}
+
+// --- OUR MAIN APP ---
 export default function Home() {
   const [screen, setScreen] = useState("home");
-  // This state remembers which bead we are on (0 to 10)
   const [currentBead, setCurrentBead] = useState(0);
 
-  // Function to move to the next bead
   const nextBead = () => {
     if (currentBead < 10) {
       setCurrentBead(currentBead + 1);
     } else {
-      setCurrentBead(0); // Reset after the decade
+      setCurrentBead(0); 
     }
   };
 
-  // --- ROSARY SCREEN ---
   if (screen === "rosary") {
     return (
-      <div style={{ padding: "20px", backgroundColor: "#1a1a2e", color: "white", minHeight: "100vh" }}>
+      <div style={{ padding: "20px", backgroundColor: "#1a1a2e", color: "white", minHeight: "100vh", paddingBottom: "100px" }}>
         <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <button onClick={() => setScreen("home")} style={{ fontSize: "16px", background: "none", color: "#a0a0a0", border: "none" }}>← Back</button>
+          <button onClick={() => setScreen("home")} style={{ fontSize: "16px", background: "none", color: "#a0a0a0", border: "none", padding: "10px" }}>← Back</button>
           <h2 style={{ fontSize: "18px" }}>1st Glorious Mystery</h2>
-          <div style={{ width: "50px" }}></div> {/* Spacer */}
+          <div style={{ width: "50px" }}></div>
         </header>
 
-        {/* Our visual SVG beads component */}
+        {/* The Beads! */}
         <RosaryBeads currentBead={currentBead} />
 
         <div style={{ textAlign: "center", marginTop: "10px" }}>
@@ -41,7 +83,6 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Feature 22: Step-by-Step Navigation */}
         <div style={{ position: "fixed", bottom: "30px", left: "20px", right: "20px" }}>
           <button 
             onClick={nextBead}
@@ -53,7 +94,6 @@ export default function Home() {
     );
   }
 
-  // --- HOME SCREEN ---
   return (
     <div style={{ padding: "20px", backgroundColor: "#1a1a2e", color: "white", minHeight: "100vh" }}>
       <header style={{ display: "flex", justifyContent: "space-between", marginBottom: "30px" }}>
@@ -73,4 +113,4 @@ export default function Home() {
       </main>
     </div>
   );
-                    }
+    }
