@@ -1,33 +1,15 @@
-// --- LITURGICAL CALENDAR ENGINE (Features 67 & 71) ---
+// --- LITURGICAL CALENDAR ---
 export function getLiturgicalInfo() {
-  const today = new Date();
-  const month = today.getMonth(); // 0 = Jan, 11 = Dec
-  const date = today.getDate();
-
-  // A simplified engine to find the season (You can expand this later!)
-  let season = "Ordinary Time";
-  let color = "#1a2e1a"; // Dark Green for Ordinary Time
-
-  // Advent (Roughly late Nov to Dec 24)
-  if ((month === 10 && date >= 27) || (month === 11 && date <= 24)) {
-    season = "Advent"; color = "#2d1b2e"; // Dark Purple
-  }
-  // Christmas (Dec 25 to mid Jan)
-  else if ((month === 11 && date >= 25) || (month === 0 && date <= 12)) {
-    season = "Christmas Time"; color = "#2e2d1a"; // Dark Gold/White
-  }
-  // Lent (Roughly late Feb/March to April) - Simplified for example
-  else if (month === 2 || month === 3) {
-    season = "Lent"; color = "#2d1b2e"; // Dark Purple
-  }
-  // Easter (Roughly April to May)
-  else if (month === 4) {
-    season = "Easter Season"; color = "#2e2d1a"; // Dark Gold/White
-  }
-
+  const today = new Date(); const month = today.getMonth(); const date = today.getDate();
+  let season = "Ordinary Time"; let color = "#1a2e1a"; // Green
+  if ((month === 10 && date >= 27) || (month === 11 && date <= 24)) { season = "Advent"; color = "#2d1b2e"; } // Purple
+  else if ((month === 11 && date >= 25) || (month === 0 && date <= 12)) { season = "Christmas Time"; color = "#2e2d1a"; } // Gold
+  else if (month === 2 || month === 3) { season = "Lent"; color = "#2d1b2e"; } // Purple
+  else if (month === 4) { season = "Easter Season"; color = "#2e2d1a"; } // Gold
   return { season, color };
 }
 
+// --- BASIC PRAYERS ---
 export const prayers = {
   signOfCross: "In the name of the Father, and of the Son, and of the Holy Spirit. Amen.",
   creed: "I believe in God, the Father Almighty...",
@@ -46,6 +28,15 @@ export const chapletPrayers = {
   closing: "Eternal God, in whom mercy is endless..."
 };
 
+// FEATURE #46 & #48: STATIONS OF THE CROSS DATA
+export const stationsOfCross = [
+  { numeral: "I", title: "Jesus is condemned to death", adoration: { leader: "We adore You, O Christ, and we praise You.", response: "Because, by Your holy cross, You have redeemed the world." }, reflection: "Consider how Jesus Christ, after being scourged and crowned with thorns, was unjustly condemned by Pilate to die on the cross." },
+  { numeral: "II", title: "Jesus carries His cross", adoration: { leader: "We adore You, O Christ, and we praise You.", response: "Because, by Your holy cross, You have redeemed the world." }, reflection: "Consider Jesus as He walked this road with the cross on His shoulders, thinking of us, and offering to His Father the death He was about to suffer." },
+  { numeral: "III", title: "Jesus falls the first time", adoration: { leader: "We adore You, O Christ, and we praise You.", response: "Because, by Your holy cross, You have redeemed the world." }, reflection: "Consider the first fall of Jesus. Loss of blood from the scourging and crowning with thorns had so weakened Him that He could hardly walk." },
+  { numeral: "IV", title: "Jesus meets His Mother", adoration: { leader: "We adore You, O Christ, and we praise You.", response: "Because, by Your holy cross, You have redeemed the world." }, reflection: "Consider how the Son met His Mother on His way to Calvary. Jesus and Mary gazed at each other and their looks became as so many arrows to wound those hearts which loved each other so tenderly." }
+  // (We will add Stations V through XIV later, just using 4 to test the engine!)
+];
+
 export const mysteries = {
   joyful: {
     name: "The Joyful Mysteries",
@@ -61,12 +52,7 @@ export const mysteries = {
 
 export function getTodaysMystery() {
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const today = days[new Date().getDay()];
-  if (today === "Monday" || today === "Saturday") return "Joyful";
-  if (today === "Tuesday" || today === "Friday") return "Sorrowful";
-  if (today === "Wednesday" || today === "Sunday") return "Glorious";
-  if (today === "Thursday") return "Luminous";
-  return "Joyful";
+  return (days[new Date().getDay()] === "Tuesday" || days[new Date().getDay()] === "Friday") ? "Sorrowful" : "Joyful";
 }
 
 export const prayerLibrary = [
