@@ -1,14 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
-// Import our new Brain!
 import { prayers, mysteries, getTodaysMystery } from "./data";
 
-// --- THE VISUAL BEADS (Unchanged) ---
+// --- THE VISUAL BEADS ---
 function RosaryBeads({ currentBead }: { currentBead: number }) {
   const beads = Array.from({ length: 10 });
   const radius = 110; 
   const center = 150; 
-
   return (
     <div style={{ display: 'flex', justifyContent: 'center', margin: '20px 0' }}>
       <svg width="300" height="360" viewBox="0 0 300 360">
@@ -37,12 +35,9 @@ function RosaryBeads({ currentBead }: { currentBead: number }) {
 export default function Home() {
   const [screen, setScreen] = useState("home");
   const [currentBead, setCurrentBead] = useState(0);
-  
-  // States to hold our dynamic data
   const [todayName, setTodayName] = useState("");
   const [todaysMystery, setTodaysMystery] = useState("");
 
-  // This runs once when the app opens to check the clock
   useEffect(() => {
     const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     setTodayName(days[new Date().getDay()]);
@@ -50,27 +45,42 @@ export default function Home() {
   }, []);
 
   const nextBead = () => {
+    // Stop audio when moving to the next bead
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    
     if (currentBead < 10) setCurrentBead(currentBead + 1);
     else setCurrentBead(0); 
   };
 
+  // Feature #23: Text-to-Speech Audio Engine
+  const playAudio = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Stop anything currently playing
+      const textToRead = currentBead === 10 ? prayers.gloryBe : prayers.hailMary;
+      const utterance = new SpeechSynthesisUtterance(textToRead);
+      // We will add settings for male/female/speed later!
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert("Audio not supported on this browser.");
+    }
+  };
+
   if (screen === "rosary") {
-    // We are grabbing the 1st Joyful Mystery from our data file
     const currentDecadeData = mysteries.joyful.decades[0];
 
     return (
       <div style={{ padding: "20px", backgroundColor: "#1a1a2e", color: "white", minHeight: "100vh", paddingBottom: "120px" }}>
-        
-        {/* Global Back Button */}
         <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <button onClick={() => setScreen("home")} style={{ fontSize: "16px", background: "none", color: "#a0a0a0", border: "none", padding: "10px 0" }}>
+          <button onClick={() => {
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel(); // Stop audio if they quit
+            setScreen("home");
+          }} style={{ fontSize: "16px", background: "none", color: "#a0a0a0", border: "none", padding: "10px 0" }}>
             ← Quit
           </button>
           <div style={{ fontSize: "14px", color: "#d4af37" }}>{mysteries.joyful.name}</div>
           <div style={{ width: "50px" }}></div>
         </header>
 
-        {/* Feature 16 & 17: Titles, Verses, and Reflections */}
         <div style={{ textAlign: "center", marginTop: "10px" }}>
           <h2 style={{ fontSize: "22px", margin: "0" }}>{currentDecadeData.title}</h2>
           <p style={{ color: "#a0a0a0", fontSize: "14px", fontStyle: "italic", marginTop: "5px" }}>Fruit of the Mystery: {currentDecadeData.fruit}</p>
@@ -78,15 +88,20 @@ export default function Home() {
 
         <RosaryBeads currentBead={currentBead} />
 
-        <div style={{ textAlign: "center", backgroundColor: "#16213e", padding: "15px", borderRadius: "12px", border: "1px solid #333" }}>
-          <h3 style={{ color: "#d4af37", marginBottom: "10px", fontSize: "16px" }}>
+        <div style={{ textAlign: "center", backgroundColor: "#16213e", padding: "15px", borderRadius: "12px", border: "1px solid #333", position: "relative" }}>
+          
+          {/* AUDIO PLAY BUTTON */}
+          <button onClick={playAudio} style={{ position: "absolute", top: "-20px", right: "20px", backgroundColor: "#d4af37", border: "none", borderRadius: "50%", width: "40px", height: "40px", fontSize: "20px", boxShadow: "0 4px 6px rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            🔊
+          </button>
+
+          <h3 style={{ color: "#d4af37", marginBottom: "10px", fontSize: "16px", marginTop: "10px" }}>
             {currentBead === 10 ? "Glory Be / O My Jesus" : `Hail Mary (${currentBead + 1}/10)`}
           </h3>
           <p style={{ fontSize: "18px", lineHeight: "1.5", color: "#e0e0e0" }}>
             {currentBead === 10 ? prayers.gloryBe : prayers.hailMary}
           </p>
           
-          {/* Show the Bible verse and reflection ONLY on the first bead of the decade */}
           {currentBead === 0 && (
             <div style={{ marginTop: "15px", paddingTop: "15px", borderTop: "1px solid #444", fontSize: "14px", color: "#a0a0a0", textAlign: "left" }}>
               <p style={{ marginBottom: "10px" }}><strong>Scripture:</strong> {currentDecadeData.verse}</p>
@@ -114,7 +129,6 @@ export default function Home() {
       <main>
         <div style={{ backgroundColor: "#16213e", padding: "24px", borderRadius: "16px", textAlign: "center", border: "1px solid #d4af37", marginBottom: "20px", boxShadow: "0 4px 15px rgba(0,0,0,0.3)" }}>
           <h2 style={{ fontSize: "22px", marginBottom: "10px" }}>Quick Start Rosary</h2>
-          {/* Feature 1 & 11: Dynamic Date and Mystery! */}
           <p style={{ color: "#a0a0a0", marginBottom: "5px" }}>Today is {todayName}</p>
           <p style={{ color: "#d4af37", fontWeight: "bold", fontSize: "18px", marginBottom: "20px" }}>{todaysMystery} Mysteries</p>
           
@@ -133,4 +147,4 @@ export default function Home() {
       </main>
     </div>
   );
-      }
+        }
