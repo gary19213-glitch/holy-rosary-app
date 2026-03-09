@@ -84,8 +84,7 @@ export default function Home() {
     setIsAutoPlay(false); setScreen("home"); setStage("intro"); 
     setCurrentDecade(0); setCurrentBead(0); setPendantBead(0); setCurrentStation(0); setSelectedPrayer(null);
   };
-
-  const nextPrayer = () => {
+    const nextPrayer = () => {
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     if (screen === "stations") {
       if (currentStation < stationsOfCross.length - 1) setCurrentStation(currentStation + 1); else finishAndSave(); return;
@@ -163,4 +162,67 @@ export default function Home() {
           <div style={{ backgroundColor: "rgba(0,0,0,0.4)", padding: "20px", borderRadius: "16px", border: "1px solid #333", marginBottom: "20px" }}><h2 style={{ fontSize: "18px", color: "#d4af37", marginBottom: "15px" }}>Voice Settings</h2><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}><label style={{ color: "#a0a0a0" }}>Alternating Voices</label><button onClick={() => { setAlternatingMode(!alternatingMode); localStorage.setItem("alternatingMode", (!alternatingMode).toString()); }} style={{ padding: "8px 15px", borderRadius: "20px", backgroundColor: alternatingMode ? "#d4af37" : "#333", color: alternatingMode ? "#1a1a2e" : "white", border: "none", fontWeight: "bold" }}>{alternatingMode ? "ON" : "OFF"}</button></div><label style={{ display: "block", marginBottom: "5px", color: "#a0a0a0" }}>Speech Speed: {speechSpeed}x</label><input type="range" min="0.5" max="2.0" step="0.25" value={speechSpeed} onChange={(e) => { setSpeechSpeed(parseFloat(e.target.value)); localStorage.setItem("speechSpeed", e.target.value); }} style={{ width: "100%", accentColor: "#d4af37" }} /></div>
           <div style={{ backgroundColor: "rgba(0,0,0,0.4)", padding: "20px", borderRadius: "16px", border: "1px solid #333", marginBottom: "20px" }}><h2 style={{ fontSize: "18px", color: "#d4af37", marginBottom: "15px" }}>Appearance</h2><label style={{ display: "block", marginBottom: "5px", color: "#a0a0a0" }}>Color Theme</label><select value={appTheme} onChange={(e) => saveSettings("appTheme", e.target.value)} style={{ width: "100%", padding: "12px", borderRadius: "8px", backgroundColor: "#1a1a2e", color: "white", border: "1px solid #444", marginBottom: "20px" }}><option value="auto">Auto (Liturgical Calendar)</option><option value="purple">Dark Purple</option><option value="blue">Midnight Blue</option><option value="gold">Light Gold</option></select><label style={{ display: "block", marginBottom: "5px", color: "#a0a0a0" }}>Default Display Mode</label><select value={displayMode} onChange={(e) => saveSettings("displayMode", e.target.value)} style={{ width: "100%", padding: "12px", borderRadius: "8px", backgroundColor: "#1a1a2e", color: "white", border: "1px solid #444" }}><option value="visual">Visual Beads</option><option value="text">Text Only</option></select></div>
         </>
-      
+      )}
+      {/* 4. DIVINE MERCY CHAPLET */}
+      {screen === "chaplet" && (
+        <div style={{ paddingBottom: "100px" }}>
+          <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><button onClick={quitToHome} style={{ background: "none", color: "#ccc", border: "none", fontSize: "16px" }}>← Quit</button><div style={{ fontSize: "14px", color: "#d4af37", fontWeight: "bold" }}>Divine Mercy Chaplet</div><button onClick={() => setIsAutoPlay(!isAutoPlay)} style={{ background: isAutoPlay ? "#d4af37" : "#333", color: isAutoPlay ? "#1a1a2e" : "white", border: "none", padding: "5px 10px", borderRadius: "20px" }}>{isAutoPlay ? "Auto ON" : "Auto OFF"}</button></header>
+          {stage === "intro" && ( <div style={{ textAlign: "center", marginTop: "40px" }}><h2 style={{ fontSize: "24px", color: "#d4af37" }}>Opening Prayers</h2><p style={{ marginTop: "20px", fontSize: "18px" }}>{chapletPrayers.opening}</p></div> )}
+          {stage === "decades" && ( <><div style={{ textAlign: "center", marginTop: "10px" }}><h2 style={{ fontSize: "22px", margin: "0" }}>Decade {currentDecade + 1}</h2></div><RosaryBeads currentBead={currentBead} /><div style={{ textAlign: "left", backgroundColor: "rgba(0,0,0,0.4)", padding: "20px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.1)", position: "relative" }}><button onClick={() => playAudio(currentBead === 0 || currentBead === 11 ? chapletPrayers.eternalFather : chapletPrayers.sorrowfulPassion)} style={{ position: "absolute", top: "-20px", right: "20px", backgroundColor: "#d4af37", border: "none", borderRadius: "50%", width: "40px", height: "40px", fontSize: "20px" }}>🔊</button><h3 style={{ color: "#d4af37", marginBottom: "15px", textAlign: "center", fontSize:"22px" }}>{currentBead === 0 || currentBead === 11 ? "Large Bead" : `Small Bead (${currentBead}/10)`}</h3><p style={{ fontSize: "18px", lineHeight: "1.5", color: "#e0e0e0" }}>{renderPrayerText(currentBead === 0 || currentBead === 11 ? chapletPrayers.eternalFather : chapletPrayers.sorrowfulPassion)}</p></div></> )}
+          {stage === "outro" && ( <div style={{ textAlign: "center", marginTop: "40px" }}><h2 style={{ fontSize: "24px", color: "#d4af37" }}>Closing Prayers</h2><p style={{ marginTop: "20px", fontSize: "18px" }}>{chapletPrayers.closing}</p></div> )}
+          <div style={{ position: "fixed", bottom: "30px", left: "20px", right: "20px" }}><button onClick={nextPrayer} style={{ backgroundColor: "#d4af37", color: "#1a1a2e", padding: "16px", width: "100%", borderRadius: "30px", fontSize: "18px", fontWeight: "bold", border: "none" }}>{stage === "outro" ? "Finish ✓" : "Next Prayer ➔"}</button></div>
+        </div>
+      )}
+
+      {/* 5. STATIONS OF THE CROSS */}
+      {screen === "stations" && (() => {
+        const station = stationsOfCross[currentStation];
+        return (
+          <div style={{ paddingBottom: "100px" }}>
+            <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}><button onClick={quitToHome} style={{ background: "none", color: "#ccc", border: "none", fontSize: "16px" }}>← Quit</button><div style={{ fontSize: "14px", color: "#d4af37", fontWeight: "bold" }}>Via Dolorosa</div><button onClick={() => setIsAutoPlay(!isAutoPlay)} style={{ background: isAutoPlay ? "#d4af37" : "#333", color: isAutoPlay ? "#1a1a2e" : "white", border: "none", padding: "5px 10px", borderRadius: "20px" }}>{isAutoPlay ? "Auto ON" : "Auto OFF"}</button></header>
+            <div style={{ textAlign: "center", marginBottom: "20px" }}>
+              <h1 style={{ fontSize: "50px", color: "#d4af37", margin: "0" }}>{station.numeral}</h1><h2 style={{ fontSize: "20px", color: "#fff", marginBottom: "20px" }}>{station.title}</h2>
+              <img src={station.image} alt={station.title} style={{ width: "100%", height: "250px", objectFit: "cover", borderRadius: "12px", border: "2px solid #d4af37" }} />
+            </div>
+            <div style={{ textAlign: "left", backgroundColor: "rgba(0,0,0,0.4)", padding: "20px", borderRadius: "12px", border: "1px solid #d4af37", position: "relative" }}><button onClick={() => playAudio(station.adoration, station.reflection)} style={{ position: "absolute", top: "-20px", right: "20px", backgroundColor: "#d4af37", border: "none", borderRadius: "50%", width: "40px", height: "40px", fontSize: "20px" }}>🔊</button><h3 style={{ color: "#d4af37", marginBottom: "15px" }}>Adoration</h3><p style={{ fontSize: "16px", lineHeight: "1.5" }}>{renderPrayerText(station.adoration)}</p><h3 style={{ color: "#d4af37", marginBottom: "10px", marginTop:"15px" }}>Reflection</h3><p style={{ fontSize: "16px", fontStyle: "italic" }}>"{station.reflection}"</p></div>
+            <div style={{ position: "fixed", bottom: "30px", left: "20px", right: "20px" }}><button onClick={nextPrayer} style={{ backgroundColor: "#d4af37", color: "#1a1a2e", padding: "16px", width: "100%", borderRadius: "30px", fontSize: "18px", fontWeight: "bold", border: "none" }}>Next Station ➔</button></div>
+          </div>
+        );
+      })()}
+
+      {/* 6. ROSARY SCREEN */}
+      {screen === "rosary" && (
+        <div style={{ paddingBottom: "100px" }}>
+          <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <button onClick={quitToHome} style={{ background: "none", color: "#ccc", border: "none", fontSize: "16px" }}>← Quit</button>
+            <button onClick={() => setDisplayMode(displayMode === "visual" ? "text" : "visual")} style={{ background: "none", border: "1px solid #d4af37", color: "#d4af37", padding: "5px 10px", borderRadius: "8px", fontSize: "12px" }}>
+              {displayMode === "visual" ? "Text View" : "Visual Beads"}
+            </button>
+            <button onClick={() => setIsAutoPlay(!isAutoPlay)} style={{ background: isAutoPlay ? "#d4af37" : "#333", color: isAutoPlay ? "#1a1a2e" : "white", border: "none", padding: "5px 10px", borderRadius: "20px" }}>{isAutoPlay ? "Auto ON" : "Auto OFF"}</button>
+          </header>
+          {stage === "intro" && ( <div style={{ textAlign: "center", marginTop: "40px" }}><h2 style={{ fontSize: "24px", color: "#d4af37" }}>Sign of the Cross</h2><p style={{ marginTop: "20px", fontSize: "18px" }}>{prayers.signOfCross}</p><h2 style={{ fontSize: "24px", color: "#d4af37", marginTop:"40px" }}>Apostles Creed</h2><p style={{ marginTop: "20px", fontSize: "18px", color:"#e0e0e0" }}>{prayers.creed}</p></div> )}
+          {stage === "pendant" && ( <div style={{ textAlign: "center", marginTop: "40px" }}><h2 style={{ fontSize: "20px", color: "#ccc", marginBottom:"20px" }}>Introductory Prayers</h2><div style={{ textAlign: "left", backgroundColor: "rgba(0,0,0,0.4)", padding: "20px", borderRadius: "12px", border: "1px solid #d4af37", position: "relative" }}><button onClick={() => playAudio(pendantBead === 0 ? prayers.ourFather : pendantBead === 4 ? prayers.gloryBe : prayers.hailMary)} style={{ position: "absolute", top: "-20px", right: "20px", backgroundColor: "#d4af37", border: "none", borderRadius: "50%", width: "40px", height: "40px", fontSize: "20px" }}>🔊</button><h3 style={{ color: "#d4af37", marginBottom: "15px", textAlign: "center", fontSize:"22px" }}>{pendantBead === 0 ? "Our Father" : pendantBead === 4 ? "Glory Be" : `Hail Mary (${pendantBead}/3)`}</h3><p style={{ fontSize: "18px", lineHeight: "1.5", color: "#e0e0e0" }}>{renderPrayerText(pendantBead === 0 ? prayers.ourFather : pendantBead === 4 ? prayers.gloryBe : prayers.hailMary)}</p></div></div> )}
+          {stage === "decades" && (() => {
+            const currentMystery = mysteries.joyful.decades[currentDecade];
+            return (
+            <>
+              <div style={{ textAlign: "center", marginTop: "10px", padding:"10px", backgroundColor:"rgba(0,0,0,0.3)", borderRadius:"12px" }}>
+                <h2 style={{ fontSize: "20px", margin: "0", color:"#fff", marginBottom: "10px" }}>{currentMystery.title}</h2>
+                <img src={currentMystery.image} alt={currentMystery.title} style={{ width: "100%", height: "180px", objectFit: "cover", borderRadius: "8px", border: "1px solid #d4af37", marginBottom: "10px" }} />
+                {currentBead === 0 && ( <div style={{ marginTop: "5px", paddingTop: "10px", borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: "14px", color: "#ccc", textAlign: "left" }}><p style={{ marginBottom: "10px" }}><strong>Scripture:</strong> {currentMystery.verse}</p><p><strong>Reflection:</strong> {currentMystery.reflection}</p></div> )}
+              </div>
+              {displayMode === "visual" && <RosaryBeads currentBead={currentBead} />}
+              <div style={{ textAlign: "left", backgroundColor: "rgba(0,0,0,0.4)", padding: "20px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.1)", position: "relative", marginTop: displayMode === "text" ? "20px" : "0" }}>
+                <button onClick={() => playAudio(currentBead === 0 ? prayers.ourFather : currentBead === 11 ? prayers.gloryBe : prayers.hailMary, currentBead === 11 ? prayers.fatimaPrayer : undefined)} style={{ position: "absolute", top: "-20px", right: "20px", backgroundColor: "#d4af37", border: "none", borderRadius: "50%", width: "40px", height: "40px", fontSize: "20px" }}>🔊</button>
+                <h3 style={{ color: "#d4af37", marginBottom: "15px", textAlign: "center", fontSize:"22px" }}>{currentBead === 0 ? "Our Father" : currentBead === 11 ? "Glory Be" : `Hail Mary (${currentBead}/10)`}</h3>
+                <p style={{ fontSize: "18px", lineHeight: "1.5", color: "#e0e0e0" }}>{renderPrayerText(currentBead === 0 ? prayers.ourFather : currentBead === 11 ? prayers.gloryBe : prayers.hailMary, currentBead === 11 ? prayers.fatimaPrayer : undefined)}</p>
+              </div>
+            </>
+          );})()}
+          {stage === "outro" && ( <div style={{ textAlign: "center", marginTop: "40px" }}><h2 style={{ fontSize: "24px", color: "#d4af37" }}>Closing Prayers</h2><p style={{ marginTop: "20px", fontSize: "18px" }}>{prayers.hailHolyQueen}</p></div> )}
+          <div style={{ position: "fixed", bottom: "30px", left: "20px", right: "20px" }}><button onClick={nextPrayer} style={{ backgroundColor: "#d4af37", color: "#1a1a2e", padding: "16px", width: "100%", borderRadius: "30px", fontSize: "18px", fontWeight: "bold", border: "none" }}>{stage === "outro" ? "Finish ✓" : "Next Prayer ➔"}</button></div>
+        </div>
+      )}
+    </div>
+  );
+                                                                                                                                                                                                                                                                                                                                                                                              }      
