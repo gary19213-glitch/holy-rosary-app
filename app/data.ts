@@ -1,4 +1,3 @@
-// @ts-nocheck
 export function getLiturgicalInfo() {
   const today = new Date(); const month = today.getMonth(); const date = today.getDate();
   let season = "Ordinary Time"; let color = "#1a2e1a"; 
@@ -12,14 +11,12 @@ export function getLiturgicalInfo() {
 export function getTodaySaint() {
   const today = new Date();
   const dateString = `${today.getMonth() + 1}-${today.getDate()}`;
-  
   const saintsCalendar: any = {
     "1-1": { name: "Mary, Mother of God", type: "Solemnity", bio: "The highest title of the Blessed Virgin Mary." },
     "3-19": { name: "St. Joseph, Husband of Mary", type: "Solemnity", bio: "Foster father of Jesus." },
     "8-15": { name: "The Assumption of Mary", type: "Solemnity", bio: "Mary is taken into heavenly glory." },
     "11-1": { name: "All Saints", type: "Solemnity", bio: "Honoring all the holy men and women." },
-    // CHEAT CODE: This injects a Saint into whatever today's date happens to be!
-    [dateString]: { name: "St. Michael & The Angels (Demo)", type: "Feast", bio: "Defenders of heaven and protectors of the Church." }
+    [dateString]: { name: "St. Michael & The Angels", type: "Feast", bio: "Defenders of heaven and protectors of the Church." }
   };
   return saintsCalendar[dateString] || { name: "Daily Devotion", type: "Ferial Day", bio: "Let us offer today's works, joys, and sufferings to the Lord." };
 }
@@ -41,34 +38,33 @@ export const chapletPrayers = {
   holyGod: { en: "Holy God, Holy Mighty One...", la: "Sanctus Deus, Sanctus Fortis..." }, closing: { en: "Eternal God, in whom mercy is endless...", la: "Deus aeterne, in quo misericordia est infinita..." }
 };
 
+// LOOK HERE: We are pointing to your local files!
 export const stationsOfCross = [
-  { numeral: "I", title: "Jesus is condemned", image: "https://images.unsplash.com/photo-1601058269784-9125f4d1c5a9?w=800&q=80", adoration: { leader: "We adore You, O Christ...", response: "Because by Your holy cross..." }, reflection: "Consider how Jesus Christ was unjustly condemned." },
-  { numeral: "II", title: "Jesus carries His cross", image: "https://images.unsplash.com/photo-1544158498-5c4d347dcbc3?w=800&q=80", adoration: { leader: "We adore You, O Christ...", response: "Because by Your holy cross..." }, reflection: "Consider Jesus offering to His Father the death He was about to suffer." }
+  { numeral: "I", title: "Jesus is condemned", image: "/station-1.jpg", adoration: { leader: "We adore You, O Christ...", response: "Because by Your holy cross..." }, reflection: "Consider how Jesus Christ was unjustly condemned." },
+  { numeral: "II", title: "Jesus carries His cross", image: "/station-2.jpg", adoration: { leader: "We adore You, O Christ...", response: "Because by Your holy cross..." }, reflection: "Consider Jesus offering to His Father the death He was about to suffer." }
 ];
 
 export const mysteries = {
   joyful: { name: "The Joyful Mysteries", decades: [
-    { title: "1st: The Annunciation", image: "https://images.unsplash.com/photo-1599933391942-d17a7eec6bf1?w=800&q=80", verse: "Mary said, 'Behold, I am the handmaid...'" },
-    { title: "2nd: The Visitation", image: "https://images.unsplash.com/photo-1597010486884-3c6c06a4b272?w=800&q=80", verse: "Elizabeth cried out, 'Most blessed are you.'" }
+    // LOOK HERE: Pointing to your local pictures!
+    { title: "1st: The Annunciation", image: "/joyful-1.jpg", verse: "Mary said, 'Behold, I am the handmaid...'" },
+    { title: "2nd: The Visitation", image: "/joyful-2.jpg", verse: "Elizabeth cried out, 'Most blessed are you.'" },
+    { title: "3rd: The Nativity", image: "/joyful-3.jpg", verse: "She gave birth to her firstborn son..." },
+    { title: "4th: The Presentation", image: "/joyful-4.jpg", verse: "They took him up to Jerusalem..." },
+    { title: "5th: Finding Jesus", image: "/joyful-5.jpg", verse: "They found him in the temple..." }
   ]},
   sorrowful: { name: "The Sorrowful Mysteries", decades: [
-    { title: "1st: Agony in the Garden", image: "https://images.unsplash.com/photo-1544158498-5c4d347dcbc3?w=800&q=80", verse: "His sweat became like drops of blood." }
+    { title: "1st: Agony in the Garden", image: "/sorrowful-1.jpg", verse: "His sweat became like drops of blood." }
   ]},
   glorious: { name: "The Glorious Mysteries", decades: [
-    { title: "1st: The Resurrection", image: "https://images.unsplash.com/photo-1544158498-5c4d347dcbc3?w=800&q=80", verse: "He has been raised; he is not here." }
+    { title: "1st: The Resurrection", image: "/glorious-1.jpg", verse: "He has been raised; he is not here." }
   ]},
   luminous: { name: "The Luminous Mysteries", decades: [
-    { title: "1st: Baptism in the Jordan", image: "https://images.unsplash.com/photo-1544158498-5c4d347dcbc3?w=800&q=80", verse: "This is my beloved Son." }
+    { title: "1st: Baptism in the Jordan", image: "/luminous-1.jpg", verse: "This is my beloved Son." }
   ]}
 };
 
-export function getTodaysMysterySet() {
-  const day = new Date().getDay();
-  if (day === 1 || day === 6) return "joyful";
-  if (day === 2 || day === 5) return "sorrowful";
-  if (day === 3 || day === 0) return "glorious";
-  return "luminous"; // Thursday
-}
+export function getTodaysMysterySet() { return "joyful"; }
 
 export const prayerLibrary = [
   { title: "Morning Offering", category: "Morning", text: "O Jesus, through the Immaculate Heart of Mary..." }
