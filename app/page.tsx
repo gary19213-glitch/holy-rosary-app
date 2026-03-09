@@ -301,7 +301,7 @@ export default function Home() {
     }}>
       
       {/* GLOBAL AUDIO PLAYER */}
-      <audio ref={bgAudioRef} src="https://cdn.freesound.org/previews/345/345824_5121236-lq.mp3" loop />
+      <audio ref={bgAudioRef} src="/chant.mp3" loop />
 
       {/* 1. HOME SCREEN */}
       {screen === "home" && (
