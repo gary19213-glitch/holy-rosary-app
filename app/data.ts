@@ -48,4 +48,31 @@ export function getTodaysMystery() {
   if (today === "Wednesday" || today === "Sunday") return "Glorious";
   if (today === "Thursday") return "Luminous";
   return "Joyful";
-}
+// FEATURE #50 & #52: THE PRAYER LIBRARY DATABASE
+export const prayerLibrary = [
+  { 
+    title: "Morning Offering", 
+    category: "Morning",
+    text: "O Jesus, through the Immaculate Heart of Mary, I offer You my prayers, works, joys, and sufferings of this day in union with the Holy Sacrifice of the Mass throughout the world. I offer them for all the intentions of Your Sacred Heart: the salvation of souls, reparation for sin, and the reunion of all Christians. I offer them for the intentions of our bishops and of all Apostles of Prayer, and in particular for those recommended by our Holy Father this month. Amen." 
+  },
+  { 
+    title: "St. Michael the Archangel", 
+    category: "Spiritual Warfare",
+    text: "St. Michael the Archangel, defend us in battle, be our protection against the wickedness and snares of the devil. May God rebuke him we humbly pray; and do thou, O Prince of the Heavenly host, by the power of God, cast into hell Satan and all the evil spirits who prowl about the world seeking the ruin of souls. Amen." 
+  },
+  { 
+    title: "The Angelus", 
+    category: "Marian",
+    text: "V. The Angel of the Lord declared to Mary:\nR. And she conceived of the Holy Spirit.\n(Hail Mary...)\n\nV. Behold the handmaid of the Lord:\nR. Be it done unto me according to Thy word.\n(Hail Mary...)\n\nV. And the Word was made Flesh:\nR. And dwelt among us.\n(Hail Mary...)\n\nPray for us, O Holy Mother of God, that we may be made worthy of the promises of Christ." 
+  },
+  { 
+    title: "Act of Contrition", 
+    category: "Penitential",
+    text: "O my God, I am heartily sorry for having offended Thee, and I detest all my sins because of Thy just punishments, but most of all because they offend Thee, my God, Who art all-good and deserving of all my love. I firmly resolve, with the help of Thy grace, to sin no more and to avoid the near occasions of sin. Amen." 
+  },
+  { 
+    title: "Prayer to Guardian Angel", 
+    category: "Saints",
+    text: "Angel of God, my guardian dear, to whom God's love commits me here, ever this day be at my side, to light and guard, to rule and guide. Amen." 
+  }
+];
